@@ -1,0 +1,60 @@
+  name: CD
+  on:
+    push:
+      branches: 
+        - main
+
+  jobs:
+    package:
+      name: "Package functions and Deploy Terraform"
+      runs-on: ubuntu-latest
+
+      steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::943457664629:role/github-actions-dotlanche-pipeline
+          aws-region: sa-east-1
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install Lambda Tools
+        run: dotnet tool install -g Amazon.Lambda.Tools
+
+      - name: Build
+        working-directory: ./src/DotlancheAuthentication
+        run: dotnet build -c release
+
+      - name: Generate Lambdas ZIP
+        working-directory: ./src/DotlancheAuthentication
+        run: dotnet lambda package ../../infra/v${{ github.run_id }}.zip
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.1.7"
+
+      - id: init
+        name: Terraform Init
+        working-directory: ./infra
+        run: terraform init -backend-config="bucket=lanchesjaamp-sa-east-1-terraform-statefile"
+
+      - id: plan
+        name: Terraform Plan
+        working-directory: ./infra
+        env: 
+          TF_VAR_zip_file: v${{ github.run_id }}.zip
+          TF_VAR_functions_role: "arn:aws:iam::943457664629:role/github-actions-dotlanche-pipeline"
+        run: terraform plan 
+
+      - id: apply
+        name: Terraform Apply
+        working-directory: ./infra
+        env: 
+          TF_VAR_zip_file: v${{ github.run_id }}.zip
+          TF_VAR_functions_role: "arn:aws:iam::943457664629:role/github-actions-dotlanche-pipeline"
+        run: terraform apply -auto-approve
