@@ -15,40 +15,43 @@ resource "aws_iam_role" "lambda_role" {
   })
 }
 
+locals {
+  role        = aws_iam_role.lambda_role.arn
+  memory_size = 512
+  runtime     = "dotnet8"
+}
+
 resource "aws_iam_policy_attachment" "lambda_basic_execution" {
   name       = "IamLambdaExecutionRole"
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
   roles      = [aws_iam_role.lambda_role.name]
 }
 
-resource "aws_lambda_function" "signin_function" {
-  function_name = "DotLancheAuthenticationSignIn"
-  role          = aws_iam_role.lambda_role.arn
-  handler       = "DotLancheAuthentication::DotLancheAuthentication.Functions.AuthenticationFunction::SignIn"
-  runtime       = "dotnet8"
-
-  filename         = "DotLancheAuthentication.zip"
-  source_code_hash = filebase64sha256("DotLancheAuthentication.zip")
-}
-
-resource "aws_lambda_function" "signup_function" {
-  function_name = "DotLancheAuthenticationSignUp"
-  role          = aws_iam_role.lambda_role.arn
-  handler       = "DotLancheAuthentication::DotLancheAuthentication.Functions.AuthenticationFunction::SignUp"
-  runtime       = "dotnet8"
-
-  filename         = "DotLancheAuthentication.zip"
-  source_code_hash = filebase64sha256("DotLancheAuthentication.zip")
-}
-
-resource "aws_lambda_function" "getuser_function" {
-  function_name = "DotLancheAuthenticationGetUser"
-  role          = aws_iam_role.lambda_role.arn
+resource "aws_lambda_function" "getuser" {
+  function_name = "dotlanches-getuser"
   handler       = "DotLancheAuthentication::DotLancheAuthentication.Functions.AuthenticationFunction::GetUser"
-  runtime       = "dotnet8"
+  role          = local.role
+  memory_size   = local.memory_size
+  runtime       = local.runtime
+  filename      = var.zip_file
+}
 
-  filename         = "DotLancheAuthentication.zip"
-  source_code_hash = filebase64sha256("DotLancheAuthentication.zip")
+resource "aws_lambda_function" "signup" {
+  function_name = "dotlanches-signup"
+  handler       = "DotLancheAuthentication::DotLancheAuthentication.Functions.AuthenticationFunction::SignUp" #Class is build from a source generator
+  role          = local.role
+  memory_size   = local.memory_size
+  runtime       = local.runtime
+  filename      = var.zip_file
+}
+
+resource "aws_lambda_function" "signin" {
+  function_name = "dotlanches-signin"
+  handler       = "DotLancheAuthentication::DotLancheAuthentication.Functions.AuthenticationFunction::SignIn" #Class is build from a source generator
+  role          = local.role
+  memory_size   = local.memory_size
+  runtime       = local.runtime
+  filename      = var.zip_file
 }
 
 resource "aws_apigatewayv2_api" "http_api" {
