@@ -1,14 +1,11 @@
 data "aws_vpc" "vpc" {
-  filter {
-    name   = "tag:Project"
-    values = ["Dotlanches"]
-  }
+  id = "vpc-7ab34d1c"
 }
 
 data "aws_subnets" "private_subnets" {
   filter {
-    name   = "tag:Project"
-    values = ["Dotlanches"]
+    name   = "vpc-id"
+    values = [data.aws_vpc.vpc.id]
   }
 
   filter {
@@ -20,7 +17,7 @@ data "aws_subnets" "private_subnets" {
 data "aws_security_group" "eks_security_group" {
   filter {
     name   = "tag:aws:eks:cluster-name"
-    values = ["dotcluster"]
+    values = ["default"]
   }
 }
 
