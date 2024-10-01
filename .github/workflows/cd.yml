@@ -6,6 +6,7 @@ on:
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
   AWS_REGION: us-east-1
 
 jobs:
@@ -29,12 +30,12 @@ jobs:
       run: dotnet tool install -g Amazon.Lambda.Tools
 
     - name: Build
-      working-directory: src/DotlancheAuthentication/DotlancheAuthentication
+      working-directory: ./src/DotlancheAuthentication
       run: dotnet build -c release
 
     - name: Generate Lambdas ZIP
-      working-directory: src/DotlancheAuthentication/DotlancheAuthentication
-      run: dotnet lambda package ../../infra/v${{ github.run_id }}.zip
+      working-directory: ./src/DotlancheAuthentication
+      run: dotnet lambda package ../../IaC/v${{ github.run_id }}.zip
 
     - uses: hashicorp/setup-terraform@v3
       with:
@@ -42,12 +43,12 @@ jobs:
 
     - id: init
       name: Terraform Init
-      working-directory: ./infra
+      working-directory: ./IaC
       run: terraform init -backend-config="bucket=${{ vars.TERRAFORM_S3_BACKEND }}"
 
     - id: plan
       name: Terraform Plan
-      working-directory: ./infra
+      working-directory: ./IaC
       env: 
         TF_VAR_zip_file: v${{ github.run_id }}.zip
         TF_VAR_functions_role: ${{ vars.LAB_ROLE }}
@@ -55,7 +56,7 @@ jobs:
 
     - id: apply
       name: Terraform Apply
-      working-directory: ./infra
+      working-directory: ./IaC
       env: 
         TF_VAR_zip_file: v${{ github.run_id }}.zip
         TF_VAR_functions_role: ${{ vars.LAB_ROLE }}
