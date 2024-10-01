@@ -5,7 +5,7 @@ resource "aws_lb" "dotlanche_api_lb" {
   load_balancer_type = "network"
   subnets            = data.aws_subnets.private_subnets.ids
 
-  security_groups = [data.aws_security_group.eks_security_group.id]
+  security_groups = ["sg-967078e2"]
 
   tags = {
     Name = "dotlanche-api-lb"
