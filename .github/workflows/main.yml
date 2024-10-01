@@ -19,38 +19,54 @@ jobs:
       aws-statefile-s3-bucket: "lanchesjaamp-sa-east-1-terraform-statefile"
       aws-lock-dynamodb-table: "lanchesjaamp-sa-east-1-terraform-lock"
 
-  build_and_deploy_lambda:
+  package:
+    name: "Package functions and Deploy Terraform"
     runs-on: ubuntu-latest
-    needs: terraform  # Esse job só executa após o Terraform terminar
+
+    defaults:
+      run:
+        shell: bash
+
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'  # Certifique-se de usar a versão correta
+        dotnet-version: 8.0.x
 
-    - name: Install Lambda .NET Tools
+    - name: Install Lambda Tools
       run: dotnet tool install -g Amazon.Lambda.Tools
 
-    - name: Restore Dependencies
-      run: dotnet restore src/DotLancheAuthentication
+    - name: Build
+      working-directory: ./src/DotLancheAuthentication/DotLancheAuthentication
+      run: dotnet build -c release
 
-    - name: Build Project
-      run: dotnet build src/DotLancheAuthentication --configuration Release
+    - name: Generate Lambdas ZIP
+      working-directory: ./src/DotLancheAuthentication/DotLancheAuthentication
+      run: dotnet lambda package --output-package ../../../infra/v${{ github.run_id }}.zip
 
-    - name: Package Lambda
-      run: dotnet lambda package --project-location src/DotLancheAuthentication --output-package ./DotLancheAuthentication.zip
-
-    - name: Configure AWS credentials from assumed role
-      uses: aws-actions/configure-aws-credentials@v2
+    - uses: hashicorp/setup-terraform@v3
       with:
-        role-to-assume: "arn:aws:iam::943457664629:role/github-actions-dotlanche-pipeline"
-        aws-region: "sa-east-1"
+        terraform_version: "1.1.7"
 
-    - name: Deploy Lambda to AWS
-      run: |
-        aws lambda update-function-code --function-name DotLancheAuthenticationSignIn --zip-file fileb://DotLancheAuthentication.zip
-        aws lambda update-function-code --function-name DotLancheAuthenticationSignUp --zip-file fileb://DotLancheAuthentication.zip
-        aws lambda update-function-code --function-name DotLancheAuthenticationGetUser --zip-file fileb://DotLancheAuthentication.zip
+    - id: init
+      name: Terraform Init
+      working-directory: ./infra
+      run: terraform init -backend-config="bucket=lanchesjaamp-sa-east-1-terraform-statefile" -backend-config="region=sa-east-1"
+
+    - id: plan
+      name: Terraform Plan
+      working-directory: ./infra
+      env: 
+        TF_VAR_zip_file: v${{ github.run_id }}.zip
+        TF_VAR_functions_role: "arn:aws:iam::943457664629:role/lambda-execution-role"  # Substitua por um ARN de role existente
+      run: terraform plan -var "zip_file=v${{ github.run_id }}.zip" -var "functions_role=arn:aws:iam::943457664629:role/lambda-execution-role"
+
+    - id: apply
+      name: Terraform Apply
+      working-directory: ./infra
+      env: 
+        TF_VAR_zip_file: v${{ github.run_id }}.zip
+        TF_VAR_functions_role: "arn:aws:iam::943457664629:role/lambda-execution-role"  # Substitua por um ARN de role existente
+      run: terraform apply -auto-approve -var "zip_file=v${{ github.run_id }}.zip" -var "functions_role=arn:aws:iam::943457664629:role/lambda-execution-role"
