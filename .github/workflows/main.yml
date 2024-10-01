@@ -18,3 +18,39 @@ jobs:
       aws-region: "sa-east-1"
       aws-statefile-s3-bucket: "lanchesjaamp-sa-east-1-terraform-statefile"
       aws-lock-dynamodb-table: "lanchesjaamp-sa-east-1-terraform-lock"
+
+  build_and_deploy_lambda:
+    runs-on: ubuntu-latest
+    needs: terraform  # Esse job só executa após o Terraform terminar
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: '8.0.x'  # Certifique-se de usar a versão correta
+
+    - name: Install Lambda .NET Tools
+      run: dotnet tool install -g Amazon.Lambda.Tools
+
+    - name: Restore Dependencies
+      run: dotnet restore src/DotLancheAuthentication
+
+    - name: Build Project
+      run: dotnet build src/DotLancheAuthentication --configuration Release
+
+    - name: Package Lambda
+      run: dotnet lambda package --project-location src/DotLancheAuthentication --output-package ./DotLancheAuthentication.zip
+
+    - name: Configure AWS credentials from assumed role
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: "arn:aws:iam::943457664629:role/github-actions-dotlanche-pipeline"
+        aws-region: "sa-east-1"
+
+    - name: Deploy Lambda to AWS
+      run: |
+        aws lambda update-function-code --function-name DotLancheAuthenticationSignIn --zip-file fileb://DotLancheAuthentication.zip
+        aws lambda update-function-code --function-name DotLancheAuthenticationSignUp --zip-file fileb://DotLancheAuthentication.zip
+        aws lambda update-function-code --function-name DotLancheAuthenticationGetUser --zip-file fileb://DotLancheAuthentication.zip
