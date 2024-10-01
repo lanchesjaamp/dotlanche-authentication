@@ -11,24 +11,11 @@ permissions:
 
 jobs:
   terraform:
-    name: "Deploy Infrastructure"
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-
-    - uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: "1.1.7"
-
-    - name: Terraform Init
-      working-directory: ./infra
-      run: terraform init -backend-config="bucket=lanchesjaamp-sa-east-1-terraform-statefile" -backend-config="region=sa-east-1"
-
-    - name: Terraform Plan
-      working-directory: ./infra
-      run: terraform plan -out=tfplan -var-file="./envs/prod/terraform.tfvars"
-
-    - name: Terraform Apply
-      working-directory: ./infra
-      run: terraform apply -auto-approve tfplan
+    uses: ./.github/workflows/terraform.yml
+    with:
+      environment: prod
+      aws-assume-role-arn: "arn:aws:iam::943457664629:role/github-actions-dotlanche-pipeline"
+      aws-region: "sa-east-1"
+      aws-statefile-s3-bucket: "lanchesjaamp-sa-east-1-terraform-statefile"
+      aws-lock-dynamodb-table: "lanchesjaamp-sa-east-1-terraform-lock"
+  
