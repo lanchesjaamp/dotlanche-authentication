@@ -1,35 +1,51 @@
-using System;
-using System.IO;
+﻿using Amazon.Lambda.APIGatewayEvents;
+using Amazon.Lambda.Core;
+using Amazon.Lambda.Annotations.APIGateway;
+using Amazon.Lambda.Annotations;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using DotLancheAuthentication.Contracts;
+using static System.Net.Mime.MediaTypeNames;
+
+[assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
 namespace DotLancheAuthentication.Functions
 {
-    public static class AuthenticationFunction
+    public class AuthenticationFunction
     {
-        [FunctionName("Function1")]
-        public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
-            ILogger log)
+        [LambdaFunction(ResourceName = "SignIn")]
+        [HttpApi(LambdaHttpMethod.Post, "/sign-in")]
+        public async Task<APIGatewayProxyResponse> SignIn([FromBody] Teste request, ILambdaContext context)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
+            var body = new { message = "SignIn successful" };
+            return new APIGatewayProxyResponse()
+            {
+                StatusCode = 200,
+                Body = ""
+            };
+        }
 
-            string name = req.Query["name"];
+        [LambdaFunction(ResourceName = "SignUp")]
+        [HttpApi(LambdaHttpMethod.Post, "/sign-up")]
+        public async Task<APIGatewayProxyResponse> SignUp([FromBody] Teste request, ILambdaContext context)
+        {
+            var body = new { message = "SignUp successful" };
+            return new APIGatewayProxyResponse()
+            {
+                StatusCode = 200,
+                Body = ""
+            };
+        }
 
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
-
-            string responseMessage = string.IsNullOrEmpty(name)
-                ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-                : $"Hello, {name}. This HTTP triggered function executed successfully.";
-
-            return new OkObjectResult(responseMessage);
+        [LambdaFunction(ResourceName = "GetUser")]
+        [HttpApi(LambdaHttpMethod.Get, "/get-user/{cpf}")]
+        public APIGatewayProxyResponse GetUser(string cpf, ILambdaContext context)
+        {
+            var body = new { message = "User information retrieved" };
+            return new APIGatewayProxyResponse()
+            {
+                StatusCode = 200,
+                Body = ""
+            };
         }
     }
 }

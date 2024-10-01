@@ -1,14 +1,12 @@
-﻿using Amazon.Lambda.Annotations;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace DotLancheAuthentication
+namespace DotlancheAuthentication;
+
+[Amazon.Lambda.Annotations.LambdaStartup]
+public class Startup
 {
-    [LambdaStartup]
-    public class Startup
+    public void ConfigureServices(IServiceCollection services)
     {
-        public void ConfigureServices(IServiceCollection services)
-        {
-            
-        }
+        
     }
 }
