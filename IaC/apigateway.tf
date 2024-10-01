@@ -14,13 +14,6 @@ data "aws_subnets" "private_subnets" {
   }
 }
 
-data "aws_security_group" "eks_security_group" {
-  filter {
-    name   = "tag:aws:eks:cluster-name"
-    values = ["default"]
-  }
-}
-
 resource "aws_apigatewayv2_api" "apigateway" {
   name          = "dotlanches-api-gateway"
   protocol_type = "HTTP"
@@ -35,7 +28,7 @@ resource "aws_apigatewayv2_stage" "apigateway-stage" {
 
 resource "aws_apigatewayv2_vpc_link" "apigateway-vpc_link" {
   name               = "EKS_LB"
-  security_group_ids = [data.aws_security_group.eks_security_group.id]
+  security_group_ids = ["sg-967078e2"]  # ID do security group default
   subnet_ids         = data.aws_subnets.private_subnets.ids
 }
 
