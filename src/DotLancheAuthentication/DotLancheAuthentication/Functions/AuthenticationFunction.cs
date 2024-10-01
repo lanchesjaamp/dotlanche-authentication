@@ -2,9 +2,7 @@
 using Amazon.Lambda.Core;
 using Amazon.Lambda.Annotations.APIGateway;
 using Amazon.Lambda.Annotations;
-using System.Threading.Tasks;
 using DotLancheAuthentication.Contracts;
-using static System.Net.Mime.MediaTypeNames;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
