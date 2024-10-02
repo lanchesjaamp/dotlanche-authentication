@@ -1,2 +1,0 @@
-# dotlanche-authentication
-teste
