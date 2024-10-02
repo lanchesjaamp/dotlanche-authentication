@@ -1,10 +1,3 @@
-data "aws_vpc" "vpc" {
-  filter {
-    name   = "tag:Project"
-    values = ["Dotlanches"]
-  }
-}
-
 data "aws_subnets" "private_subnets" {
   filter {
     name   = "tag:Project"
@@ -17,12 +10,43 @@ data "aws_subnets" "private_subnets" {
   }
 }
 
-data "aws_security_group" "eks_security_group" {
-  filter {
-    name   = "tag:aws:eks:cluster-name"
-    values = ["dotcluster"]
+resource "aws_security_group" "eks_security_group" {
+  name        = "eks-cluster-sg"
+  description = "Security group for EKS cluster"
+  vpc_id      = data.aws_vpc.vpc.id  # ID da VPC onde o SG será criado
+
+  # Regras de entrada (inbound)
+  ingress {
+    description = "Allow inbound traffic from specific CIDR"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "Allow inbound traffic from VPC"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]  # Substitua pelo CIDR da sua VPC
+  }
+
+  # Regras de saída (outbound)
+  egress {
+    description = "Allow all outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name                = "eks-cluster-sg"
+    "aws:eks:cluster-name" = "dotcluster"  # Tag associando o SG ao cluster EKS
   }
 }
+
 
 resource "aws_apigatewayv2_api" "apigateway" {
   name          = "dotlanches-api-gateway"
@@ -38,7 +62,7 @@ resource "aws_apigatewayv2_stage" "apigateway-stage" {
 
 resource "aws_apigatewayv2_vpc_link" "apigateway-vpc_link" {
   name               = "EKS_LB"
-  security_group_ids = [data.aws_security_group.eks_security_group.id]
+  security_group_ids = [aws_security_group.eks_security_group.id]
   subnet_ids         = data.aws_subnets.private_subnets.ids
 }
 

@@ -5,10 +5,22 @@ resource "aws_lb" "dotlanche_api_lb" {
   load_balancer_type = "network"
   subnets            = data.aws_subnets.private_subnets.ids
 
-  security_groups = [data.aws_security_group.eks_security_group.id]
+  security_groups = [aws_security_group.eks_security_group.id]
 
   tags = {
     Name = "dotlanche-api-lb"
+  }
+}
+
+resource "aws_vpc" "dotlanches_vpc" {
+  cidr_block = "10.0.0.0/16"
+
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+
+  tags = {
+    Name    = "Dotlanches-VPC"
+    Project = "Dotlanches"
   }
 }
 
@@ -16,7 +28,7 @@ resource "aws_lb_target_group" "dotlanche_api_tg" {
   name     = "dotlanche-api-tg"
   port     = 30045
   protocol = "TCP"
-  vpc_id   = data.aws_vpc.vpc.id
+  vpc_id = aws_vpc.dotlanches_vpc.id
 
   health_check {
     path                = "/health"
