@@ -13,7 +13,7 @@ data "aws_subnets" "private_subnets" {
 resource "aws_security_group" "eks_security_group" {
   name        = "eks-cluster-sg"
   description = "Security group for EKS cluster"
-  vpc_id      = data.aws_vpc.vpc.id  # ID da VPC onde o SG será criado
+  vpc_id      = aws_vpc.dotlanches_vpc.id  # ID da VPC onde o SG será criado
 
   # Regras de entrada (inbound)
   ingress {
