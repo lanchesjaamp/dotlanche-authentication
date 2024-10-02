@@ -17,4 +17,3 @@ jobs:
       aws-assume-role-arn: "arn:aws:iam::943457664629:role/github-actions-dotlanche-pipeline"
       aws-region: "sa-east-1"
       aws-statefile-s3-bucket: "lanchesjaamp-sa-east-1-terraform-statefile"
-      aws-lock-dynamodb-table: "lanchesjaamp-sa-east-1-terraform-lock"
