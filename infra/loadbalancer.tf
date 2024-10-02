@@ -3,7 +3,7 @@ resource "aws_lb" "dotlanche_api_lb" {
   name               = "dotlanche-api-lb"
   internal           = true
   load_balancer_type = "network"
-  subnets            = data.aws_subnets.private_subnets.ids
+  subnets            = [aws_subnet.private_subnet.id]
 
   security_groups = [aws_security_group.eks_security_group.id]
 

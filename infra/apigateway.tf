@@ -63,7 +63,7 @@ resource "aws_apigatewayv2_stage" "apigateway-stage" {
 resource "aws_subnet" "private_subnet" {
   vpc_id            = aws_vpc.dotlanches_vpc.id  # Referencie a VPC que você criou
   cidr_block        = "10.0.1.0/24"  # Subnet CIDR Block
-  availability_zone = "us-east-1a"  # Escolha uma zona de disponibilidade da região
+  availability_zone = "sa-east-1a"  # Escolha uma zona de disponibilidade da região
 
   tags = {
     Name    = "Dotlanches-Private-Subnet"
