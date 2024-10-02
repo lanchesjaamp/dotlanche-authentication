@@ -31,7 +31,7 @@ resource "aws_iam_role" "lambda_role" {
 resource "aws_lambda_function" "getuser" {
   function_name = "dotlanches-getuser"
   handler       = "DotlancheAuthentication::DotlancheAuthentication.Functions_GetUser_Generated::GetUser" #Class is build from a source generator
-  role          = aws_iam_role.lambda_role.name
+  role          = aws_iam_role.lambda_role.arn
   memory_size   = local.memory_size
   runtime       = local.runtime
   filename      = var.zip_file
@@ -43,7 +43,7 @@ resource "aws_lambda_function" "getuser" {
 resource "aws_lambda_function" "signup" {
   function_name = "dotlanches-signup"
   handler       = "DotlancheAuthentication::DotlancheAuthentication.Functions_SignUp_Generated::SignUp" #Class is build from a source generator
-  role          = aws_iam_role.lambda_role.name
+  role          = aws_iam_role.lambda_role.arn
   memory_size   = local.memory_size
   runtime       = local.runtime
   filename      = var.zip_file
@@ -55,7 +55,7 @@ resource "aws_lambda_function" "signup" {
 resource "aws_lambda_function" "signin" {
   function_name = "dotlanches-signin"
   handler       = "DotlancheAuthentication::DotlancheAuthentication.Functions_SignIn_Generated::SignIn" #Class is build from a source generator
-  role          = aws_iam_role.lambda_role.name
+  role          = aws_iam_role.lambda_role.arn
   memory_size   = local.memory_size
   runtime       = local.runtime
   filename      = var.zip_file
