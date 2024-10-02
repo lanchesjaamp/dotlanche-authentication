@@ -23,12 +23,12 @@ jobs:
         dotnet-version: 8.0.x
 
     - name: Restore dependencies
-      working-directory: ./src/DotLancheAuthentication  # Corrigir o caminho
+      working-directory: ./src/DotLancheAuthentication/DotLancheAuthentication  # Corrigir o caminho
       run: dotnet restore
 
     - id: build_functions
       name: Build Functions
-      working-directory: ./src/DotLancheAuthentication  # Corrigir o caminho
+      working-directory: ./src/DotLancheAuthentication/DotLancheAuthentication  # Corrigir o caminho
       run: dotnet build --no-restore
 
   validate:
