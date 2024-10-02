@@ -6,4 +6,3 @@ variable "zip_file" {
 variable "functions_role" {
   description = "role for functions"
   type        = string
-}
