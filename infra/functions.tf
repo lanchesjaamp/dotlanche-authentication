@@ -11,10 +11,27 @@ locals {
   }
 }
 
+resource "aws_iam_role" "lambda_role" {
+  name = "lambda_execution_role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        },
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
 resource "aws_lambda_function" "getuser" {
   function_name = "dotlanches-getuser"
   handler       = "DotlancheAuthentication::DotlancheAuthentication.Functions_GetUser_Generated::GetUser" #Class is build from a source generator
-  role          = local.role
+  role          = aws_iam_role.lambda_role.name
   memory_size   = local.memory_size
   runtime       = local.runtime
   filename      = var.zip_file
@@ -26,7 +43,7 @@ resource "aws_lambda_function" "getuser" {
 resource "aws_lambda_function" "signup" {
   function_name = "dotlanches-signup"
   handler       = "DotlancheAuthentication::DotlancheAuthentication.Functions_SignUp_Generated::SignUp" #Class is build from a source generator
-  role          = local.role
+  role          = aws_iam_role.lambda_role.name
   memory_size   = local.memory_size
   runtime       = local.runtime
   filename      = var.zip_file
@@ -38,7 +55,7 @@ resource "aws_lambda_function" "signup" {
 resource "aws_lambda_function" "signin" {
   function_name = "dotlanches-signin"
   handler       = "DotlancheAuthentication::DotlancheAuthentication.Functions_SignIn_Generated::SignIn" #Class is build from a source generator
-  role          = local.role
+  role          = aws_iam_role.lambda_role.name
   memory_size   = local.memory_size
   runtime       = local.runtime
   filename      = var.zip_file
