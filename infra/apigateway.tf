@@ -60,10 +60,22 @@ resource "aws_apigatewayv2_stage" "apigateway-stage" {
   auto_deploy = true
 }
 
+resource "aws_subnet" "private_subnet" {
+  vpc_id            = aws_vpc.dotlanches_vpc.id  # Referencie a VPC que você criou
+  cidr_block        = "10.0.1.0/24"  # Subnet CIDR Block
+  availability_zone = "us-east-1a"  # Escolha uma zona de disponibilidade da região
+
+  tags = {
+    Name    = "Dotlanches-Private-Subnet"
+    Project = "Dotlanches"
+  }
+}
+
+
 resource "aws_apigatewayv2_vpc_link" "apigateway-vpc_link" {
   name               = "EKS_LB"
   security_group_ids = [aws_security_group.eks_security_group.id]
-  subnet_ids         = data.aws_subnets.private_subnets.ids
+    subnet_ids       = [aws_subnet.private_subnet.id]
 }
 
 output "api_gateway_url" {
